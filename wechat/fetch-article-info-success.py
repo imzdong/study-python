@@ -8,6 +8,7 @@ import re
 import os
 import urllib
 from jinja2 import Environment, FileSystemLoader
+import json
 
 '''
 关键字解释：
@@ -17,17 +18,17 @@ user-agent可以模拟浏览器请求至此信息获取部分完成，下面开�
 '''
 
 headers = {
-    "cookie": "appmsglist_action_3094473706=card; ua_id=ux3LuOWf6ocUYGvpAAAAAHuBi-Ig1E1HhD6Q7B9NLxg=; wxuin=10469175239859; _qimei_uuid42=185100b362c100066c02924fda63204ab606aea5a0; _qimei_fingerprint=4b609d3d1c5c156310315cbfe2e03de0; _qimei_q36=; _qimei_h38=fded78e16c02924fda63204a0200000a118510; mm_lang=zh_CN; ETCI=e3e5d3e1a1ea40da9bf2c4809a00d72f; _clck=3094473706|1|fnr|0; uuid=bc53c5ed137b5a9ebd88ba785a76ac65; rand_info=CAESIB1n4FNRqXU/CYHOT/YUY5kCiGUFMP1XUeBxYWLC1bNp; slave_bizuin=3094473706; data_bizuin=3094473706; bizuin=3094473706; data_ticket=FwuMP6TlpAG3LybOPQpXG2/aT8Aud7ltAuFjPbDFpsFY6UlkbXwY/UsGdCG28If8; slave_sid=SHp4Tm1pZlFsd2hDeFFNcEJFUlM5S1ByZXRuenlDTkR0MFZWemJhTjYzbEszRlI1MHRRd3hIZ3BZenJIUnBRQ2JkNmRwVEZfYU04MUJUS2xMUGwxYk9BOF80aFpHVVp0RWFnSEYwTnlSbFpranFUMTZGYjV5dkhvalVJMWhNOU43SFFWQTBESHJOVVE1aWlz; slave_user=gh_195ed1058a3c; xid=6b509838f192f6142e6e7a2ff5fac532; rewardsn=; wxtokenkey=777; _clsk=7dx3qc|1721878774146|1|1|mp.weixin.qq.com/weheat-agent/payload/record",
+    "cookie": "appmsglist_action_3094473706=card; ua_id=rTisf6no8nQ6Z2EpAAAAAE0nkbQrFlZq1A7-67LqGnU=; wxuin=22044998669898; uuid=e97fca24606f7c01a7fb3cd1ce3c8ae2; _clck=6s741v|1|fnt|0; rand_info=CAESIIFwJvXVCYaaNxOrlF5oVVrHO7PD4l0NSbFBr60xeihz; slave_bizuin=3094473706; data_bizuin=3094473706; bizuin=3094473706; data_ticket=PcUMElrHiY0jd+fBQkn8WWDrd7fNtben8VE3VYLs1YLSrcipat/O2soiIuY1LUeh; slave_sid=UFlGeE85Qm5nMzhsY1dQcXhZUV83ZWJfRHM0Z3NsSExYUkg4eE5ndjVqOXpDSVU4TE9sMXNHbHRRTXRRc3dBWDAyeHVyd2ZlTXBzbnI3V1BLSEV4RmFsNGlfSFpxdVo4RTJ4VnZIMVdxVG1iVzlNd2Y4bVVrcW9uQ2pYNWdPaWZuN0hMNDdTSWdEdHBIZUNq; slave_user=gh_195ed1058a3c; xid=8e39e241dcd2b96bb3d869f1049417a6; mm_lang=zh_CN; _clsk=hxabmm|1722044983139|3|1|mp.weixin.qq.com/weheat-agent/payload/record",
     "X-Requested-With": "XMLHttpRequest",
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36"
 }
 
 url = 'https://mp.weixin.qq.com/cgi-bin/appmsg'
 fad = 'MzUzMjY0NDY4Ng%3D%3D'
-token = '1857985110'
+token = '223369894'
 count = 5
 # 爬不同公众号只需要更改 fakeid 1857985110
-rootPath = 'D:\\WorkSpace\\Idea\\S\\python\\wechat\\'
+rootPath = 'D:\\WorkSpace\\idea\\python\\wechat\\'
 wxlistfile = rootPath + 'wxlist.xlsx'
 htmlPath = rootPath + 'html'
 
@@ -65,7 +66,7 @@ def getwxlist(wxid):
         if resp.json()['base_resp']['ret'] == 200013:
             print("frequencey control, stop at {}".format(str(begin)))
             wb.save(wxlistfile)
-            time.sleep(3600)
+            time.sleep(random.randint(60*60, 62*60))
             continue
         # 如果返回的内容中为空则结束
         if len(resp.json()['app_msg_list']) == 0:
@@ -74,7 +75,10 @@ def getwxlist(wxid):
         msg = resp.json()
         if "app_msg_list" in msg:
             for item in msg["app_msg_list"]:
-                row = [item['title'], item['link']]
+                op = json.dumps(item)
+                # printing result as string
+                print("final string = ", op)
+                row = [item['title'], item['link'], op]
                 ws.append(row)
                 j += 1
             print(f"第{i}页爬取成功\n")
@@ -84,7 +88,7 @@ def getwxlist(wxid):
         # 翻页
         i += 1
         # 随机暂停几秒，避免过快的请求导致过快的被查到
-        time.sleep(random.randint(5, 10))
+        time.sleep(random.randint(1*60, 3*60))
     wb.save(wxlistfile)
 
 # 解析url
