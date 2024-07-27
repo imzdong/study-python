@@ -24,9 +24,9 @@ def group_md_files(directory):
     # 打印分组后的结果
     for primary_title, secondary_titles in grouped_files.items():
         if len(secondary_titles) > 1:
-            print(f"## {primary_title}")
+            print(f"# {primary_title}")
             for secondary_title in secondary_titles:
-                print(f"    ### {secondary_title}")
+                print(f"## {secondary_title}")
         else:
             print(f"## {secondary_titles[0]}")
 

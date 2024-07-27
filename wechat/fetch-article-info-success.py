@@ -200,6 +200,17 @@ src="https://mmbiz.qpic.cn/mmbiz_gif/93v3S81Awkn5lJTmtibMxJOZaNoraDaCzRVa42zpRjV
 '''
 
 if __name__ == '__main__':
-    ar_url = 'http://mp.weixin.qq.com/s?__biz=MzUzMjY0NDY4Ng==&mid=2247502370&idx=3&sn=20224ddc9f63ffd03037f56264a7ee9f&chksm=fab29c03cdc515153901ff2edf664aaac50b671c7ac97d69d4b027d24a9797d8c9341d77ee12#rd'
-    saveData(ar_url)
+    wxlistfilefinal = rootPath + '\\wxlist-final.xlsx'
+    wb_save = openpyxl.load_workbook(wxlistfilefinal)
+    ws_save = wb_save.active
+
+    # 读取每一行的值
+    data_list = []
+    for row in ws_save.iter_rows(values_only=True):
+        data_list.append(row[2])
+
+    for ar_url in data_list:
+        print(ar_url)
+        saveData(ar_url)
+        time.sleep(random.randint(5, 10))
 

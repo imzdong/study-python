@@ -14,8 +14,8 @@ user-agent可以模拟浏览器请求至此信息获取部分完成，下面开�
 
 count = 5
 # 爬不同公众号只需要更改 fakeid 1857985110
-rootPath = 'D:\\WorkSpace\\idea\\python\\wechat\\'
-wxlistfile = rootPath + 'wxlist.xlsx'
+rootPath = config.rootPath
+wxlistfile = rootPath + '\\wxlist.xlsx'
 
 def getwxlist(wxid):
 
