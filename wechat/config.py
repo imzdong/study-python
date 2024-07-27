@@ -11,3 +11,5 @@ headers = {
 fakeid = 'MzUzMjY0NDY4Ng%3D%3D'  # 爬不同公众号只需要更改 fakeid
 # MzUzMjY0NDY4Ng==    MjM5MzU1NzkxNQ
 token='223369894'
+
+rootPath='D:\\WorkSpace\\idea\\python\\wechat'
