@@ -322,7 +322,7 @@ class Url2Html(object):
 if __name__ == "__main__":
 
     url_lst = [
-        "http://mp.weixin.qq.com/s?__biz=MTc5MTU3NTYyMQ==&mid=2650742058&idx=2&sn=1da6e9ddd1a0281e8c548fb30f8387f0&chksm=5afd0c006d8a851648e91e8cdaebfc2ab61d2518cbba369749b0a29cccb4781c622f966e6b04#rd"
+        'http://mp.weixin.qq.com/s?__biz=MzUzMjY0NDY4Ng==&mid=2247502370&idx=3&sn=20224ddc9f63ffd03037f56264a7ee9f&chksm=fab29c03cdc515153901ff2edf664aaac50b671c7ac97d69d4b027d24a9797d8c9341d77ee12#rd'
     ]
     uh = Url2Html()
     for url in url_lst:

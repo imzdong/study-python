@@ -8,7 +8,7 @@ import re
 import os
 import datetime
 from jinja2 import Environment, FileSystemLoader
-import json
+from urllib.parse import urlparse, parse_qs
 
 # 爬不同公众号只需要更改 fakeid 1857985110
 rootPath = config.rootPath
@@ -49,6 +49,7 @@ def saveData(curl):
     data = get_content(curl)
     image_links = []
     if data.get('images') != None:
+        imageNames = []
         if len(data['images']) != 0:
             # compile our unicode list of image links
             image_links = [each.get('data-src') for each in data['images']]
@@ -58,22 +59,24 @@ def saveData(curl):
             imgDst = os.path.join(htmlPath, 'imgs', imgFolder).replace('\\', '/')
             if not os.path.exists(imgDst):
                 os.makedirs(imgDst)  # make directory
-            for each in image_links:
-                imagename = each.split('/')[-2]
+            for index, each in enumerate(image_links):
                 # convert abs address
                 if not each.startswith("http"):
-                    each = imgRootPath + each
+                    print(f"imgUrl不合法：{each}")
+                    continue
+                imagename = get_image_name(each, f"image_{index}")
+                imageNames.append(imagename)
                 # save images
                 download_image(each, os.path.join(imgDst, imagename).replace('\\', '/'))
                 # join a file name with title and data & replace ilegal tags.
-        filename = validateTitle(data['title'] + data['date'] + '.html')
+        filename = validateTitle(data['title'] + '.html')
         # replace ilegal tags
         saveDst = os.path.join(htmlPath, filename).replace('\\', '/')
 
         cleanSoup = data['content']
         if len(image_links) != 0:
-            for each in image_links:
-                imagename = each.split('/')[-2]
+            for index, each in enumerate(image_links):
+                imagename = imageNames[index]
                 srcNew = "./imgs/" + imgFolder + "/" + imagename
 
                 cleanSoup.find('img', {'data-src': each})['src'] = srcNew
@@ -95,6 +98,15 @@ def saveData(curl):
         saveDst = "None"
         saveDate = time.strftime('%Y-%m-%d')
         savetolist(curl, data['title'], saveDst, saveDate)
+
+def get_image_name(imageUrl, name):
+    # 解析 URL
+    parsed_url = urlparse(imageUrl)
+    # 提取查询字符串
+    query_params = parse_qs(parsed_url.query)
+    # 获取 wx_fmt 参数
+    wx_fmt = query_params.get('wx_fmt', [''])[0]
+    return f"{name}.{wx_fmt}"
 
 def getMonth(date_string):
     date_format = "%Y-%m-%d"
@@ -175,6 +187,17 @@ def savetolistTest():
     row = [93, 93, 93, 93]
     ws.append(row)
     wb.save(lclist)
+
+
+'''
+/html/body/div[2]/div[2]/div[2]/div/div[1]/div[2]/section[7]/span/img
+
+<img class="rich_pages wxw-img __bg_gif" data-galleryid="" data-ratio="1.1966604823747682" 
+data-src="https://mmbiz.qpic.cn/mmbiz_gif/93v3S81Awkn5lJTmtibMxJOZaNoraDaCzRVa42zpRjVf4t27LX3aiaGoWXu3W0bYgla6orKG9qHpXnObUGR5PK6g/640?wx_fmt=gif" 
+data-type="gif" data-w="539" style="letter-spacing: 0.578px; height: auto !important; visibility: visible !important; width: 539px !important;" data-original-style="letter-spacing: 0.578px;height: auto !important;" data-index="1" 
+src="https://mmbiz.qpic.cn/mmbiz_gif/93v3S81Awkn5lJTmtibMxJOZaNoraDaCzRVa42zpRjVf4t27LX3aiaGoWXu3W0bYgla6orKG9qHpXnObUGR5PK6g/640?wx_fmt=gif&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1" _width="539px" data-order="0" alt="图片" data-fail="0">
+
+'''
 
 if __name__ == '__main__':
     ar_url = 'http://mp.weixin.qq.com/s?__biz=MzUzMjY0NDY4Ng==&mid=2247502370&idx=3&sn=20224ddc9f63ffd03037f56264a7ee9f&chksm=fab29c03cdc515153901ff2edf664aaac50b671c7ac97d69d4b027d24a9797d8c9341d77ee12#rd'
