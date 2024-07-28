@@ -13,7 +13,7 @@ from urllib.parse import urlparse, parse_qs
 # 爬不同公众号只需要更改 fakeid 1857985110
 rootPath = config.rootPath
 wxlistfile = rootPath + 'wxlist.xlsx'
-htmlPath = rootPath + '\\html'
+htmlPath = rootPath + '\\html-test'
 
 # 解析url
 def get_beautiful_soup(url1):
@@ -45,17 +45,17 @@ def get_content(curl):
 
 imgRootPath = 'https://mp.weixin.qq.com'
 
-def saveData(curl):
+def saveData(curl, aid):
     data = get_content(curl)
     image_links = []
     if data.get('images') != None:
+        imgFolder = validateTitle(data['date']) + "\\" + aid
         imageNames = []
         if len(data['images']) != 0:
             # compile our unicode list of image links
             image_links = [each.get('data-src') for each in data['images']]
             # create img folder
             # imgFolder = validateTitle (data['time'].split(' ')[0])
-            imgFolder = validateTitle(data['date'])
             imgDst = os.path.join(htmlPath, 'imgs', imgFolder).replace('\\', '/')
             if not os.path.exists(imgDst):
                 os.makedirs(imgDst)  # make directory
@@ -167,16 +167,6 @@ def savetolist(curl, ctitle, lcfile, date):
     ws.append(row)
     wb.save(lclist)
 
-def doGet():
-    wb = openpyxl.load_workbook(wxlistfile, True)
-    # 获取活动工作表
-    ws = wb.active
-    # 遍历每一行
-    for row in ws.iter_rows(values_only=True):
-        print(row[1])
-        saveData(row[1])
-        time.sleep(random.randint(1, 5))
-
 def savetolistTest():
     lclist = rootPath + '/lclist.xlsx'
     wb = openpyxl.load_workbook(lclist)
@@ -199,18 +189,19 @@ src="https://mmbiz.qpic.cn/mmbiz_gif/93v3S81Awkn5lJTmtibMxJOZaNoraDaCzRVa42zpRjV
 
 '''
 
-if __name__ == '__main__':
-    wxlistfilefinal = rootPath + '\\wxlist-final.xlsx'
+def final():
+    wxlistfilefinal = rootPath + '\\wxlist-final-ad.xlsx'
     wb_save = openpyxl.load_workbook(wxlistfilefinal)
     ws_save = wb_save.active
 
     # 读取每一行的值
-    data_list = []
     for row in ws_save.iter_rows(values_only=True):
-        data_list.append(row[2])
-
-    for ar_url in data_list:
-        print(ar_url)
-        saveData(ar_url)
+        print(row[3])
+        saveData(row[3], row[0])
         time.sleep(random.randint(5, 10))
+
+if __name__ == '__main__':
+    aurl = 'http://mp.weixin.qq.com/s?__biz=MzUzMjY0NDY4Ng==&mid=2247484471&idx=1&sn=da1a62717faa67f11681e2a41857578c&chksm=fab15216cdc6db00aa7040465237f06136eeece3ddf160446cb8c8d0d3c8c1855273a5256c65#rd'
+    aid = '2'
+    saveData(aurl, aid)
 

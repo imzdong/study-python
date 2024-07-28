@@ -1,4 +1,5 @@
-import requests
+import os.path
+import shutil
 import openpyxl
 import config
 import time
@@ -7,6 +8,8 @@ import json
 rootPath = config.rootPath
 wxlistfile = rootPath + '\\wxlist.xlsx'
 wxlistfilefinal = rootPath + '\\wxlist-final.xlsx'
+# wxlist-final-ad
+wxlistfilefinal = rootPath + '\\wxlist-final-ad.xlsx'
 
 class Article:
     def __init__(self, data):
@@ -49,6 +52,10 @@ def fill_toc():
     for row in data_list:
         # 解析 JSON 字符串
         data_dict = json.loads(row)
+        copyright_type = data_dict.get("copyright_type")
+        #if copyright_type == 0:
+        #    print(f'广告：{data_dict.get("title")}')
+        #    continue
         # 创建对象
         article = Article(data_dict)
         articles.append(article)
@@ -61,11 +68,16 @@ def fill_toc():
             articles_by_month[month] = []
         articles_by_month[month].append(article)
 
+    copyPath = 'D:\\WorkSpace\\idea\\python\\wechat\\toc'
+    htmlPath = 'D:\\WorkSpace\\idea\\python\\wechat\\html\\'
     # 打印按月份分类的结果
     for month, articles in articles_by_month.items():
         print(f"# {month}")
+        # 复制文件并重命名
+        #shutil.copy(copyPath+"\\1.html", copyPath+"\\"+month+".html")
         for article in articles:
-            print(f"## {article.title}")
+            if os.path.exists(htmlPath+article.title+".html"):
+                print(f"## {article.title}")
 
 def save_final():
     wb = openpyxl.load_workbook(wxlistfile)
@@ -84,16 +96,18 @@ def save_final():
         # 解析 JSON 字符串
         data_dict = json.loads(row)
         copyright_type = data_dict.get("copyright_type")
-        if copyright_type == 1:
+        if copyright_type == 0:
             create_time = data_dict.get("create_time")
             title = data_dict.get("title")
             link = data_dict.get("link")
-            row = [title, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(create_time))), link]
+            aid = data_dict.get("aid")
+            row = [aid, title, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(create_time))), link]
             ws_save.append(row)
 
     wb_save.save(wxlistfilefinal)
 
 if __name__ == '__main__':
     fill_toc()
+    #save_final()
 
 
