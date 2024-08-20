@@ -1,6 +1,11 @@
 from datetime import date, timedelta, datetime
+from os.path import realpath
+from tokenize import String
+
 import requests
 import re
+import time
+import os
 
 
 HEADERS = {
@@ -16,6 +21,7 @@ proxies = {
 }
 
 bbc_prefix = "http://www.bbc.co.uk/learningenglish/english/features/6-minute-english/ep-"
+bbc_download_prefix = "http://downloads.bbc.co.uk/learningenglish/features/6min/"
 
 def get_thursday(year):
     day = date(year, 1, 1)
@@ -68,7 +74,7 @@ def download_mp3(url, output_filename):
                         file.write(chunk)
             print(f"Downloaded MP3 file successfully to {output_filename}")
         else:
-            print(f"Failed to download MP3 file. Status code: {response.status_code}")
+            print(f"Failed to download MP3 file:{url}. Status code: {response.status_code}")
     except Exception as e:
         print(f"An error occurred: {e}")
 
@@ -97,8 +103,15 @@ def get_thursdays_in_year(year):
 
     return thursdays
 
+def mkdirs(folder_path):
+    try:
+        os.makedirs(folder_path, exist_ok=True)
+        print(f"Folder created successfully: {folder_path}")
+    except OSError as e:
+        print(f"Failed to create folder: {e}")
+
 if __name__ == '__main__':
-    thursday = []
+    #thursday = []
     """
     for day in get_thursday(2018):
         day = str(day)
@@ -109,12 +122,34 @@ if __name__ == '__main__':
     print(bbc_url)
     """
 
-    thursdays_2024 = get_thursdays_in_year(2018)
-    for d in thursdays_2024:
-        thursday.append(bbc_prefix + d.strftime("%Y%m%d")[2:])
+    years = set(range(2018, 2025))
+    path = "D:\\Downloads\\crawler\\"
+
+    """
+    http://downloads.bbc.co.uk/learningenglish/features/6min/180104_6min_english_bitcoin.pdf
+    http://downloads.bbc.co.uk/learningenglish/features/6min/180104_6min_english_bitcoin_download.mp3
+    """
+    for year in years:
+        thursdays = get_thursdays_in_year(year)
+        for d in thursdays:
+            #thursday.append(bbc_prefix + d.strftime("%Y%m%d")[2:])
+            article_name  = d.strftime("%Y%m%d")[2:]
+            bbc_url = bbc_prefix + article_name
+            realpath = path+"\\" + str(year) + "\\"
+            mkdirs(realpath)
+            res = requests.get(bbc_url, proxies=proxies)
+            res.encoding = 'utf-8'
+            html = res.text
+            # print(html)
+            url_pdf, title, url = parse_bbc(html)
+            pdf_name = article_name + "_6min_english.pdf"
+            mp3_name = article_name + "_6min_english_download.mp3"
+            download_mp3(url, realpath + mp3_name)
+            download_mp3(url_pdf, realpath + pdf_name)
+            time.sleep(5)
 
     #print(thursday)
-    #"""
+    """
     res = requests.get(thursday[0], proxies=proxies)
     res.encoding = 'utf-8'
     html = res.text
@@ -123,7 +158,7 @@ if __name__ == '__main__':
     print(url_pdf)
     print(title)
     print(url)
-    path = "D:\\Downloads\\crawler\\"
-    download_mp3(url, path+"demo.mp3")
-    download_mp3(url_pdf, path+"demo.pdf")
+    """
+
+
 
