@@ -6,7 +6,7 @@ import requests
 import re
 import time
 import os
-
+import openpyxl
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
@@ -46,7 +46,7 @@ def parse_bbc(html):
 
 
 def write_file(filename, content):
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding='utf-8') as f:
         f.write(content)
         f.close()
 
@@ -129,6 +129,9 @@ if __name__ == '__main__':
     http://downloads.bbc.co.uk/learningenglish/features/6min/180104_6min_english_bitcoin.pdf
     http://downloads.bbc.co.uk/learningenglish/features/6min/180104_6min_english_bitcoin_download.mp3
     """
+    result_file = path + "result.xlsx"
+    wb = openpyxl.load_workbook(result_file)
+    ws = wb.active
     for year in years:
         thursdays = get_thursdays_in_year(year)
         for d in thursdays:
@@ -139,14 +142,22 @@ if __name__ == '__main__':
             mkdirs(realpath)
             res = requests.get(bbc_url, proxies=proxies)
             res.encoding = 'utf-8'
-            html = res.text
-            # print(html)
-            url_pdf, title, url = parse_bbc(html)
-            pdf_name = article_name + "_6min_english.pdf"
-            mp3_name = article_name + "_6min_english_download.mp3"
-            download_mp3(url, realpath + mp3_name)
-            download_mp3(url_pdf, realpath + pdf_name)
-            time.sleep(5)
+            if res.status_code == 200:
+                html = res.text
+                write_file(realpath+article_name+"_6min_english.html", html)
+                # print(html)
+                url_pdf, title, url = parse_bbc(html)
+                pdf_name = article_name + "_6min_english.pdf"
+                mp3_name = article_name + "_6min_english_download.mp3"
+                download_mp3(url, realpath + mp3_name)
+                download_mp3(url_pdf, realpath + pdf_name)
+                row = [bbc_url,200, title, url_pdf, url]
+                ws.append(row)
+            else:
+                row = [bbc_url, res.status_code]
+                ws.append(row)
+            wb.save(result_file)
+            time.sleep(15)
 
     #print(thursday)
     """
