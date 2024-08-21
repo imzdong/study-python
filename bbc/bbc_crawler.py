@@ -19,7 +19,7 @@ proxies = {
     'http': 'http://127.0.0.1:7890',
     'https':'http://127.0.0.1:7890'
 }
-
+# 2018-2020
 bbc_prefix = "http://www.bbc.co.uk/learningenglish/english/features/6-minute-english/ep-"
 bbc_download_prefix = "http://downloads.bbc.co.uk/learningenglish/features/6min/"
 
@@ -33,7 +33,13 @@ def get_thursday(year):
 def parse_bbc(html):
     regex = r"(http(s?):)([/|.|\w|\s|-])*\.(?:mp3)"
     url = re.search(regex, html, re.MULTILINE)
-    url = url.group()
+    if url:
+        try:
+            url = url.group()
+        except ValueError:
+            print("url error:"+url)
+    else:
+        print("not found mp3-url :")
 
     regex_pdf = r"(http(s?):)([/|.|\w|\s|-])*\.(?:pdf)"
     url_pdf = re.search(regex_pdf, html, re.MULTILINE)
@@ -61,22 +67,27 @@ def download_mp3_d(url, mp3_file):
             print(e)
 
 def download_mp3(url, output_filename):
-    try:
-        # 发送 GET 请求
-        response = requests.get(url, stream=True, proxies=proxies)
-
-        # 检查响应状态码
-        if response.status_code == 200:
-            # 打开文件并写入内容
-            with open(output_filename, 'wb') as file:
-                for chunk in response.iter_content(chunk_size=1024):
-                    if chunk:
-                        file.write(chunk)
-            print(f"Downloaded MP3 file successfully to {output_filename}")
-        else:
-            print(f"Failed to download MP3 file:{url}. Status code: {response.status_code}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    if url:
+        try:
+            # 发送 GET 请求
+            response = requests.get(url, stream=True, proxies=proxies)
+            while response.status_code == 502:
+                time.sleep(10)
+                response = requests.get(url, stream=True, proxies=proxies)
+            # 检查响应状态码
+            if response.status_code == 200:
+                # 打开文件并写入内容
+                with open(output_filename, 'wb') as file:
+                    for chunk in response.iter_content(chunk_size=1024):
+                        if chunk:
+                            file.write(chunk)
+                print(f"Downloaded MP3 file successfully to {output_filename}")
+            else:
+                print(f"Failed to download MP3 file:{url}. Status code: {response.status_code}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+    else:
+        print("download_mp3 error occurred")
 
 
 def get_thursdays_in_year(year):
@@ -110,7 +121,7 @@ def mkdirs(folder_path):
     except OSError as e:
         print(f"Failed to create folder: {e}")
 
-if __name__ == '__main__':
+def list2018():
     #thursday = []
     """
     for day in get_thursday(2018):
@@ -122,8 +133,8 @@ if __name__ == '__main__':
     print(bbc_url)
     """
 
-    years = set(range(2018, 2025))
-    path = "D:\\Downloads\\crawler\\"
+    years = set(range(2018,2020))
+    path = "D:\\Download\\Crawler\\"
 
     """
     http://downloads.bbc.co.uk/learningenglish/features/6min/180104_6min_english_bitcoin.pdf
@@ -151,13 +162,83 @@ if __name__ == '__main__':
                 mp3_name = article_name + "_6min_english_download.mp3"
                 download_mp3(url, realpath + mp3_name)
                 download_mp3(url_pdf, realpath + pdf_name)
-                row = [bbc_url,200, title, url_pdf, url]
+                row = [bbc_url,200, title, url_pdf, url, mp3_name, pdf_name]
                 ws.append(row)
             else:
                 row = [bbc_url, res.status_code]
                 ws.append(row)
             wb.save(result_file)
-            time.sleep(15)
+            time.sleep(5)
+
+    #print(thursday)
+    """
+    res = requests.get(thursday[0], proxies=proxies)
+    res.encoding = 'utf-8'
+    html = res.text
+    #print(html)
+    url_pdf, title, url = parse_bbc(html)
+    print(url_pdf)
+    print(title)
+    print(url)
+    """
+def d2020():
+    #thursday = []
+    """
+    for day in get_thursday(2018):
+        day = str(day)
+        thursday.append(day.replace("-", "")[2:])
+
+    print(thursday)
+    bbc_url = bbc_prefix + thursday[0]
+    print(bbc_url)
+    """
+
+    years = [2021]#set(range(2018,2025))
+    path = "D:\\Download\\Crawler\\"
+
+    """
+    http://downloads.bbc.co.uk/learningenglish/features/6min/180104_6min_english_bitcoin.pdf
+    http://downloads.bbc.co.uk/learningenglish/features/6min/180104_6min_english_bitcoin_download.mp3
+    """
+    result_file = path + "result.xlsx"
+    wb = openpyxl.load_workbook(result_file)
+    ws = wb.active
+    for year in years:
+        thursdays = get_thursdays_in_year(year)
+        for d in thursdays:
+            #thursday.append(bbc_prefix + d.strftime("%Y%m%d")[2:])
+            article_name  = d.strftime("%Y%m%d")[2:]
+            #if int(article_name) <= 201126:
+            #    continue
+            bbc_url = bbc_prefix + article_name
+            realpath = path+"\\" + str(year) + "\\"
+            mkdirs(realpath)
+            res = requests.get(bbc_url, proxies=proxies)
+            res.encoding = 'utf-8'
+            while res.status_code == 502:
+                time.sleep(10)
+                res = requests.get(bbc_url, proxies=proxies)
+            if res.status_code == 200:
+                html = res.text
+                write_file(realpath+article_name+"_6min_english.html", html)
+                # print(html)
+                try:
+                    url_pdf, title, url = parse_bbc(html)
+                except ValueError:
+                    print(bbc_url)
+                    print("error")
+                    break
+                pdf_name = article_name + "_6min_english.pdf"
+                mp3_name = article_name + "_6min_english_download.mp3"
+                download_mp3(url, realpath + mp3_name)
+                download_mp3(url_pdf, realpath + pdf_name)
+                row = [bbc_url,200, title, url_pdf, url, mp3_name, pdf_name]
+                ws.append(row)
+            else:
+                row = [bbc_url, res.status_code]
+                ws.append(row)
+            wb.save(result_file)
+            time.sleep(5)
 
     #print(thursday)
     """
@@ -171,5 +252,9 @@ if __name__ == '__main__':
     print(url)
     """
 
+if __name__ == '__main__':
+    d2020()
+    # url = "http://downloads.bbc.co.uk/learningenglish/features/6min/201224_6min_english_pandemic_geopolitics_download.mp3"
+    # download_mp3(url, "D:\\Download\\Crawler\\2020\\201224_6min_english_download.mp3")
 
 
