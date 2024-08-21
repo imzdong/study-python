@@ -20,8 +20,10 @@ proxies = {
     'https':'http://127.0.0.1:7890'
 }
 # 2018-2020
-bbc_prefix = "http://www.bbc.co.uk/learningenglish/english/features/6-minute-english/ep-"
+bbc_prefix = "http://www.bbc.co.uk/learningenglish/english/features/6-minute-english_{}/ep-{}"
 bbc_download_prefix = "http://downloads.bbc.co.uk/learningenglish/features/6min/"
+
+bbc_22_prefix = "https://www.bbc.co.uk/learningenglish/english/features/6-minute-english_2022/ep-220609"
 
 def get_thursday(year):
     day = date(year, 1, 1)
@@ -121,66 +123,6 @@ def mkdirs(folder_path):
     except OSError as e:
         print(f"Failed to create folder: {e}")
 
-def list2018():
-    #thursday = []
-    """
-    for day in get_thursday(2018):
-        day = str(day)
-        thursday.append(day.replace("-", "")[2:])
-
-    print(thursday)
-    bbc_url = bbc_prefix + thursday[0]
-    print(bbc_url)
-    """
-
-    years = set(range(2018,2020))
-    path = "D:\\Download\\Crawler\\"
-
-    """
-    http://downloads.bbc.co.uk/learningenglish/features/6min/180104_6min_english_bitcoin.pdf
-    http://downloads.bbc.co.uk/learningenglish/features/6min/180104_6min_english_bitcoin_download.mp3
-    """
-    result_file = path + "result.xlsx"
-    wb = openpyxl.load_workbook(result_file)
-    ws = wb.active
-    for year in years:
-        thursdays = get_thursdays_in_year(year)
-        for d in thursdays:
-            #thursday.append(bbc_prefix + d.strftime("%Y%m%d")[2:])
-            article_name  = d.strftime("%Y%m%d")[2:]
-            bbc_url = bbc_prefix + article_name
-            realpath = path+"\\" + str(year) + "\\"
-            mkdirs(realpath)
-            res = requests.get(bbc_url, proxies=proxies)
-            res.encoding = 'utf-8'
-            if res.status_code == 200:
-                html = res.text
-                write_file(realpath+article_name+"_6min_english.html", html)
-                # print(html)
-                url_pdf, title, url = parse_bbc(html)
-                pdf_name = article_name + "_6min_english.pdf"
-                mp3_name = article_name + "_6min_english_download.mp3"
-                download_mp3(url, realpath + mp3_name)
-                download_mp3(url_pdf, realpath + pdf_name)
-                row = [bbc_url,200, title, url_pdf, url, mp3_name, pdf_name]
-                ws.append(row)
-            else:
-                row = [bbc_url, res.status_code]
-                ws.append(row)
-            wb.save(result_file)
-            time.sleep(5)
-
-    #print(thursday)
-    """
-    res = requests.get(thursday[0], proxies=proxies)
-    res.encoding = 'utf-8'
-    html = res.text
-    #print(html)
-    url_pdf, title, url = parse_bbc(html)
-    print(url_pdf)
-    print(title)
-    print(url)
-    """
 def d2020():
     #thursday = []
     """
@@ -193,8 +135,9 @@ def d2020():
     print(bbc_url)
     """
 
-    years = [2021]#set(range(2018,2025))
+    years = [2022]#set(range(2018,2025))
     path = "D:\\Download\\Crawler\\"
+    path = "D:\\Downloads\\crawler\\"
 
     """
     http://downloads.bbc.co.uk/learningenglish/features/6min/180104_6min_english_bitcoin.pdf
@@ -210,7 +153,10 @@ def d2020():
             article_name  = d.strftime("%Y%m%d")[2:]
             #if int(article_name) <= 201126:
             #    continue
-            bbc_url = bbc_prefix + article_name
+            has_suffix = "" if year < 2022 else year
+            bbc_url = bbc_prefix.format(has_suffix, article_name)
+            print(bbc_url)
+            #bbc_url = bbc_prefix + article_name
             realpath = path+"\\" + str(year) + "\\"
             mkdirs(realpath)
             res = requests.get(bbc_url, proxies=proxies)
