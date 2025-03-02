@@ -1,0 +1,3 @@
+git+https://github.com/jachinlin/ebook-py.git
+
+# git config  https.proxy http://127.0.0.1:7890

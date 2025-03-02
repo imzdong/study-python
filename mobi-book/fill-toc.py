@@ -33,4 +33,4 @@ def group_md_files(directory):
 
 if __name__ == '__main__':
     # D:\WorkSpace\Idea\S\python\251\toc\dest
-    group_md_files("D:\\WorkSpace\\Idea\\S\\python\\251\\toc\\dest")
+    group_md_files("/Users/admin/Downloads/mobile-book/toc-out")
