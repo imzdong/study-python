@@ -69,7 +69,14 @@ def process_html_files(input_dir, output_dir):
             for tag in content.find_all(True):
                 if tag.has_attr('class'):
                     del tag['class']
-            
+                if tag.has_attr('style'):
+                    del tag['style']
+                # Remove video tags
+            for video in content.find_all('video'):
+                video.decompose()
+            # Remove all svg tags
+            for svg in content.find_all('svg'):
+                svg.decompose()
             # 处理图片
             for img in content.find_all('img'):
                 src = img.get('data-savepage-src')
@@ -77,10 +84,16 @@ def process_html_files(input_dir, output_dir):
                     # 下载图片到输出目录
                     local_img = download_image(src, output_dir)
                     if local_img:
-                        # 创建新的img标签，只保留class和src属性
+                        # 创建新的img标签，只保留src属性
                         new_img = soup.new_tag('img')
                         new_img['src'] = local_img
                         img.replace_with(new_img)
+
+            # 将div转换为更语义化的标签
+            for div in content.find_all('div'):
+                # 如果div直接包含文本，转换为段落
+                if div.find_all(recursive=False) == [] and div.get_text().strip():
+                    div.name = 'p'
             
             # 创建新的HTML文档
             new_html = f"""<!DOCTYPE html>
@@ -88,6 +101,30 @@ def process_html_files(input_dir, output_dir):
 <head>
     <meta charset="utf-8">
     <title>{file_name}</title>
+    <style>
+        body {{
+            line-height: 1.6;
+            padding: 1em;
+            max-width: 800px;
+            margin: 0 auto;
+        }}
+        div {{
+            margin: 0.8em 0;
+        }}
+        p {{
+            margin: 0.8em 0;
+            text-indent: 2em;
+        }}
+        img {{
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 1em auto;
+        }}
+        h1, h2, h3, h4 {{
+            margin: 1.2em 0 0.6em;
+        }}
+    </style>
 </head>
 <body>
 {content.prettify()}
@@ -104,6 +141,6 @@ def process_html_files(input_dir, output_dir):
             print(f"未找到指定内容：{file_name}")
 
 if __name__ == "__main__":
-    input_dir = "/Users/admin/Downloads/mobile-book/6"
-    output_dir = "/Users/admin/Downloads/mobile-book/6-out"
+    input_dir = "/Users/admin/Downloads/mobile-book/123"
+    output_dir = "/Users/admin/Downloads/mobile-book/123out"
     process_html_files(input_dir, output_dir)
