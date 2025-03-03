@@ -3,6 +3,8 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import re
+import uuid
+import shutil
 
 def download_image(img_url, save_dir):
     """下载图片并返回本地路径"""
@@ -29,60 +31,79 @@ def download_image(img_url, save_dir):
         print(f"下载图片失败 {img_url}: {str(e)}")
     return None
 
-def process_html(input_file):
+def process_html_files(input_dir, output_dir):
     # 创建输出目录
-    output_dir = os.path.dirname(input_file)
-    img_dir = os.path.join(output_dir, 'images')
-    os.makedirs(img_dir, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
     
-    # 读取HTML文件
-    with open(input_file, 'r', encoding='utf-8') as f:
-        content = f.read()
-    
-    # 解析HTML
-    soup = BeautifulSoup(content, 'html.parser')
-    
-    # 提取标题
-    title = soup.title.string if soup.title else "无标题"
-    
-    # 找到主要内容区域（这里需要根据实际HTML结构调整）
-    article = soup.find('article') or soup.find('div', class_='article-content')
-    if not article:
-        # 如果找不到特定标签，尝试查找主要内容区域
-        article = soup.find('div', class_=re.compile(r'content|article|main'))
-    
-    if article:
-        # 处理图片
-        for img in article.find_all('img'):
-            src = img.get('src')
-            if src:
-                # 下载图片
-                local_img = download_image(src, img_dir)
-                if local_img:
-                    img['src'] = f'images/{local_img}'
+    # 遍历输入目录中的所有HTML文件
+    for file_name in os.listdir(input_dir):
+        input_file = os.path.join(input_dir, file_name)
         
-        # 创建新的HTML文档
-        new_html = f"""<!DOCTYPE html>
+        # 处理 toc.md 文件
+        if file_name == 'toc.md':
+            output_file = os.path.join(output_dir, file_name)
+            shutil.copy2(input_file, output_file)
+            print(f"复制完成：{file_name}")
+            continue
+            
+        # 处理 HTML 文件
+        if not file_name.endswith('.html'):
+            continue
+            
+        # 读取并解析HTML
+        with open(input_file, 'r', encoding='utf-8') as f:
+            soup = BeautifulSoup(f.read(), 'html.parser')
+        
+        # 检查是否只有 body 标签
+        body = soup.find('body')
+        if body and len(body.find_all()) == 0:
+            output_file = os.path.join(output_dir, file_name)
+            shutil.copy2(input_file, output_file)
+            print(f"复制完成：{file_name}")
+            continue
+        
+        # 查找指定class的内容
+        content = soup.find(class_='SlateRichContent_main_1Bj6H')
+        if content:
+             # 移除所有元素的 class 属性
+            for tag in content.find_all(True):
+                if tag.has_attr('class'):
+                    del tag['class']
+            
+            # 处理图片
+            for img in content.find_all('img'):
+                src = img.get('data-savepage-src')
+                if src:
+                    # 下载图片到输出目录
+                    local_img = download_image(src, output_dir)
+                    if local_img:
+                        # 创建新的img标签，只保留class和src属性
+                        new_img = soup.new_tag('img')
+                        new_img['src'] = local_img
+                        img.replace_with(new_img)
+            
+            # 创建新的HTML文档
+            new_html = f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>{title}</title>
+    <title>{file_name}</title>
 </head>
 <body>
-{article.prettify()}
+{content.prettify()}
 </body>
 </html>"""
-        
-        # 保存新文件
-        output_file = os.path.join(output_dir, 'article666.html')
-        with open(output_file, 'w', encoding='utf-8') as f:
-            f.write(new_html)
-        
-        print(f"处理完成！新文件保存在: {output_file}")
-        print(f"图片保存在: {img_dir}")
-    else:
-        print("未找到文章内容")
+            
+            # 保存新文件
+            output_file = os.path.join(output_dir, file_name)
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(new_html)
+            
+            print(f"处理完成：{file_name}")
+        else:
+            print(f"未找到指定内容：{file_name}")
 
 if __name__ == "__main__":
-    input_file = "/Users/admin/trae-work-splace/study-python/mobi-book/01丨模块导学：是什么在影响架构活动的成败？.html"
-    process_html(input_file)
+    input_dir = "/Users/admin/Downloads/mobile-book/6"
+    output_dir = "/Users/admin/Downloads/mobile-book/6-out"
+    process_html_files(input_dir, output_dir)
