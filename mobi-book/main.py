@@ -3,36 +3,40 @@ from filter_move_file import copy_html_files
 from fill_insert_toc import generate_toc
 from final_html import move_files_to_target
 from ebook import make_ebook
+from extract_article import process_html_files
 
 def main():
 
-    base_path = "/Users/admin/Downloads/"
+    base_path = "D:\\BaiduNetdiskDownload\\"
     # 定义源目录和目标目录
     source_directory = base_path + "212-100099801-专栏课-郭东白-郭东白的架构课（完结）"
     
-    temp_directory = base_path + "/mobile-book/郭东白的架构课"
-    tem_destination_directory = "/Users/admin/Downloads/mobile-book/郭东白的架构课-123"
-    destination_directory = "/Users/admin/Downloads/mobile-book/郭东白的架构课-mobi"
+    temp_directory = base_path + "\\mobile-book\\郭东白的架构课"
+    tem_destination_directory = base_path + "\\mobile-book\\郭东白的架构课-123"
+    final_destination_directory = base_path + "\\mobile-book\\郭东白的架构课-final"
+    destination_directory = base_path + "\\mobile-book\\郭东白的架构课-mobi"
 
     
     # 1. 首先执行文件过滤和移动
     print("Step 1: 开始过滤和移动文件和重命名文件...")
-    copy_html_files(source_directory, temp_directory)
+    #copy_html_files(source_directory, temp_directory)
     print("文件过滤和移动和重命名文件完成\n")
 
     # 2. 生成目录结构
     print("Step 2: 开始生成目录结构...")
-    generate_toc(temp_directory)
+    #generate_toc(temp_directory)
     print("目录结构生成完成")
 
     # 3. Generate final HTML
     print("Step 3: Generating final HTML...")
-    move_files_to_target(temp_directory, tem_destination_directory)
+    #move_files_to_target(temp_directory, tem_destination_directory)
     print("Final HTML generation completed")
+
+    process_html_files(tem_destination_directory, final_destination_directory)
 
     # 4. Generate mobi
     print("Step 4: Generating mobi...")
-    #make_ebook(str(tem_destination_directory), destination_directory, format='mobi')
+    make_ebook(str(final_destination_directory), destination_directory, format='mobi')
     print("mobi generation completed")
 
     # 5.删除临时目录

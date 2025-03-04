@@ -1,5 +1,6 @@
 import os
 import re
+from bs4 import BeautifulSoup
 
 def clean_filename(filename):
     # Remove Chinese parentheses and special characters
@@ -46,7 +47,30 @@ def process_directory(directory):
                     print(f"Error renaming {filename}: {e}")
 
 
+
+def process_html_meta(directory):
+    # 遍历目录下的所有文件
+    for filename in os.listdir(directory):
+        if filename.endswith('.html'):
+            file_path = os.path.join(directory, filename)
+            
+            # 读取HTML文件
+            with open(file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+            
+            # 替换meta标签
+            pattern = r'<meta\s+charset="utf-8">'
+            replacement = '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>'
+            new_content = re.sub(pattern, replacement, content, count=1)
+            
+            # 写回文件
+            if new_content != content:
+                with open(file_path, 'w', encoding='utf-8') as file:
+                    file.write(new_content)
+                print(f"已更新meta标签: {filename}")
+
 if __name__ == "__main__":
-    input_dir = "/Users/admin/Downloads/mobile-book/123out"
+    input_dir = "D:\\BaiduNetdiskDownload\\mobile-book\\郭东白的架构课-final"
+    process_html_meta(input_dir)
     #process_directory(input_dir)
-    process_toc_file(input_dir)
+    #process_toc_file(input_dir)
