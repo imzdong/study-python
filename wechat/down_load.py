@@ -11,6 +11,8 @@ import unicodedata
 import hashlib
 from datetime import datetime
 import pandas as pd
+import openpyxl
+import random
 
 # 给定的 URL
 url = "https://mp.weixin.qq.com/s?__biz=MzU1MTk2NDE4Mg==&mid=2247489209&idx=1&sn=67694d6afbb51b0b2a4866cd310224f8&chksm=fb880dc0ccff84d6e16a1a33a726c682659bfd2c6d5e1128440d95dadd9950b201b6db82bb54#rd"
@@ -166,25 +168,45 @@ def remove_nonvisible_chars(text: str) -> str:
 
 
 
+def savetolist(resultPath, account, curl, title, result):
+    wb = openpyxl.load_workbook(resultPath)
+    ws = wb.active
+    srow = [account, title, curl, result]
+    ws.append(srow)
+    wb.save(resultPath)
+
 
 if __name__ == "__main__":
 
     output_dir = "D:\\WorkSpace\\Idea\\wechat"
+    result_path = output_dir + "\\wx-result.xlsx"
 
     # 读取 Excel 文件
-    file_path = output_dir + "\\wxlist.xlsx"  # 替换为你的文件路径
-    df = pd.read_excel(file_path)
+    file_path = output_dir + "\\wxlist.xlsx"
 
-    # 遍历所有行并打印第 1 列和第 2 列
-    for index, row in df.iterrows():
-        col1_value = row[0]  # 第 1 列
-        col2_value = row[1]  # 第 2 列
-        print(f"第 {index + 1} 行: 第 1 列 = {col1_value}, 第 2 列 = {col2_value}")
+    wb_save = openpyxl.load_workbook(file_path)
+    ws_save = wb_save.active
 
-    url_data = {
-        'account': '禾木AI笔记-01',
-        #'title': row.get('标题', '').strip(),
-        'url': url
-        #'date': row.get('日期', '').strip()
-    }
-    #process_url(url_data, output_dir)
+    wx_list = []
+    # 读取每一行的值
+    for row in ws_save.iter_rows(values_only=True):
+        wx_list.append({
+            'account': '禾木AI笔记-all',
+            'title': row[0],
+            'url': row[1]
+            # 'date': row.get('日期', '').strip()
+        })
+
+    #print(wx_list)
+    for item in wx_list:
+        rs = 'success'
+        try:
+            time.sleep(random.randint(5, 10))
+            process_url(item, output_dir)
+        except Exception as e:
+            # 捕获异常并处理（例如打印错误信息）
+            print(f"发生错误: {e}")
+            rs = str(e)
+        # 文件路径
+        # 写入 Excel
+        savetolist(result_path, item['account'], item['url'], item['title'], rs)
